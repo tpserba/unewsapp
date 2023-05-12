@@ -26,6 +26,33 @@ app.get("/register", (req, res) => {
     res.render("register");
 });
 
+app.get("/login", (req, res) => {
+    res.render("login");
+});
+
+
+app.post("/login", (req, res) => {
+    let username = req.body.username;
+    let password = req.body.password;
+
+    db.oneOrNone("SELECT userid, username, password FROM users WHERE username = $1", [username])
+        .then((user) => {
+            console.log(user);
+            if (user) {
+                bcrypt.compare(password, user.password, (error, result) => {
+                    if (result) {
+                        res.send("SUCCESS")
+                    } else {
+                        res.render("login", { message: "Invalid username or password." });
+                    }
+                });
+            } else {
+                res.render("login", { message: "Invalid username or password." });
+            }
+        })
+
+});
+
 app.post("/register", (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
@@ -39,7 +66,7 @@ app.post("/register", (req, res) => {
             // Inserts user into user table
             console.log(password);
             console.log(SALT_ROUNDS);
-            bcrypt.hash(password, SALT_ROUNDS, (error, hash)=> {
+            bcrypt.hash(password, SALT_ROUNDS, (error, hash) => {
                 // Do not use stritct comparison === or it will go into else block
                 if (error == null) {
                     console.log("no error")
@@ -47,7 +74,7 @@ app.post("/register", (req, res) => {
                         .then(() => {
                             res.send("SUCCESS")
                         })
-                } else { 
+                } else {
                     console.log(error);
                 }
             })
