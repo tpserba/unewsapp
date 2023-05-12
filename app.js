@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 // Executes the function that is returned and stores the value in pgp
 const pgp = require("pg-promise")();
-
+const session = require("express-session");
 
 //Setup
 const CONN_STR = "postgres://localhost:5432/newsdb";
@@ -19,7 +19,12 @@ app.set("view engine", "mustache");
 // Tells body parser what body we're looking for
 app.use(bodyParser.urlencoded({ extended: false }));
 const SALT_ROUNDS = 10;
-
+app.use(session({
+    secret: "rwg4gdsvzvz",
+    resave: "",
+    // Save session only when we put something in it
+    saveUninitialized: false
+}))
 
 //Start
 app.get("/register", (req, res) => {
@@ -31,17 +36,25 @@ app.get("/login", (req, res) => {
 });
 
 
+app.get("/users/articles", (req, res) => {
+    res.render("articles", {username: req.session.user.username});
+});
+
+
 app.post("/login", (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
 
     db.oneOrNone("SELECT userid, username, password FROM users WHERE username = $1", [username])
-        .then((user) => {
-            console.log(user);
+        .then((user) => {            
             if (user) {
                 bcrypt.compare(password, user.password, (error, result) => {
+                    // Checks if the passwords match
                     if (result) {
-                        res.send("SUCCESS")
+                        if(req.session){
+                            req.session.user = {userid: user.userId, username: user.username}
+                        }
+                        res.redirect("/users/articles");
                     } else {
                         res.render("login", { message: "Invalid username or password." });
                     }
@@ -63,13 +76,10 @@ app.post("/register", (req, res) => {
         if (user) {
             res.render("register", { message: "Username already exists" })
         } else {
-            // Inserts user into user table
-            console.log(password);
-            console.log(SALT_ROUNDS);
+            // Inserts user into user table            
             bcrypt.hash(password, SALT_ROUNDS, (error, hash) => {
                 // Do not use stritct comparison === or it will go into else block
-                if (error == null) {
-                    console.log("no error")
+                if (error == null) {                    
                     db.none("INSERT INTO users(username, password) VALUES($1, $2)", [username, hash])
                         .then(() => {
                             res.send("SUCCESS")
