@@ -74,6 +74,20 @@ db.one("SELECT articleid,title, body FROM articles WHERE articleid = $1", [artic
 });
 
 
+
+app.post("/users/delete-article", (req, res) => {
+    let articleid = req.body.articleid;
+    db.none("DELETE FROM articles WHERE articleid = $1", [articleid])
+    .then(()=> {
+        res.redirect("/users/articles");
+    }).catch(error => {
+        console.log(error);
+    });
+})
+
+
+//post
+
 app.post("/users/update-article", (req, res) => {
     let title = req.body.title;
     let body = req.body.body;
