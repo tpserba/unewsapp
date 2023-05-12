@@ -43,7 +43,10 @@ app.get("/login", (req, res) => {
 
 
 app.get("/users/articles", (req, res) => {
-    let userid = req.session.user.userid;
+    // Uncomment, commented to speed up things (have to login each time to retrieve articles otherwise)
+    //let userid = req.session.user.userid;
+    // Remove when done
+    let userid = 4;
     db.any("SELECT articleid, title, body FROM articles WHERE fk_userid = $1", [userid])
     .then((articles)=> {
         res.render("articles", {articles: articles});
@@ -59,6 +62,29 @@ app.get("/users/add-article", (req, res) => {
     res.render("add-article");
 })
 
+
+app.get("/users/articles/edit/:articleid",(req, res)=> {
+let articleid = req.params.articleid;
+db.one("SELECT articleid,title, body FROM articles WHERE articleid = $1", [articleid])
+.then(article => {
+    res.render("edit-article",article);    
+}).catch(error => {
+    console.log(error);
+})
+});
+
+
+app.post("/users/update-article", (req, res) => {
+    let title = req.body.title;
+    let body = req.body.body;
+    let articleid = req.body.articleid;
+    db.none("UPDATE articles SET title = $1, body = $2 WHERE articleid = $3", [title, body, articleid])
+    .then(()=> {
+        res.redirect("/users/articles");
+    }).catch(error => {
+        console.log(error);
+    });
+});
 
 app.post("/users/add-article", (req, res) => {
     let title = req.body.title;
