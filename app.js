@@ -17,9 +17,13 @@ const CONN_STR = "postgres://localhost:5432/newsdb";
 const VIEWS_PATH = path.join(__dirname, "/views")
 // Craetes db object using the connection string
 const db = pgp(CONN_STR);
+
+// Configures view engine
 app.engine("mustache", mustache(VIEWS_PATH + "/partials", ".mustache"));
 app.set("views", VIEWS_PATH);
 app.set("view engine", "mustache");
+// Adds first param to apply alias since otherwise .css files would be available at root level (localhost:3003/example.css)
+app.use("/css", express.static("css"))
 // Tells body parser what body we're looking for
 app.use(bodyParser.urlencoded({ extended: false }));
 const SALT_ROUNDS = 10;
