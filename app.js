@@ -8,13 +8,17 @@ const bodyParser = require("body-parser");
 // Executes the function that is returned and stores the value in pgp
 const pgp = require("pg-promise")();
 const session = require("express-session");
+const path = require("path");
+
+
 
 //Setup
 const CONN_STR = "postgres://localhost:5432/newsdb";
+const VIEWS_PATH = path.join(__dirname, "/views")
 // Craetes db object using the connection string
 const db = pgp(CONN_STR);
-app.engine("mustache", mustache());
-app.set("views", "./views");
+app.engine("mustache", mustache(VIEWS_PATH + "/partials", ".mustache"));
+app.set("views", VIEWS_PATH);
 app.set("view engine", "mustache");
 // Tells body parser what body we're looking for
 app.use(bodyParser.urlencoded({ extended: false }));
