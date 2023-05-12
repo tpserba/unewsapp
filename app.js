@@ -43,7 +43,14 @@ app.get("/login", (req, res) => {
 
 
 app.get("/users/articles", (req, res) => {
-    res.render("articles", {username: req.session.user.username});
+    let userid = req.session.user.userid;
+    db.any("SELECT articleid, title, body FROM articles WHERE fk_userid = $1", [userid])
+    .then((articles)=> {
+        res.render("articles", {articles: articles});
+    }).catch(error => {
+        console.log(error);
+    })
+    
 });
 
 
@@ -58,12 +65,12 @@ app.post("/users/add-article", (req, res) => {
     let description = req.body.description;
     // Each article belongs to a user, so it gathers the userid
     let userid = req.session.user.userid;
-    db.none("INSERT INTO articles(title, body, fk_userid) VALUES($1, $2, $3)", [title, description,userid])
-    .then(()=> {
-        res.send("SUCCESS");
-    }).catch(error => {
-        console.log(error);
-    });
+    db.none("INSERT INTO articles(title, body, fk_userid) VALUES($1, $2, $3)", [title, description, userid])
+        .then(() => {
+            res.send("SUCCESS");
+        }).catch(error => {
+            console.log(error);
+        });
 })
 
 app.post("/login", (req, res) => {
@@ -71,13 +78,13 @@ app.post("/login", (req, res) => {
     let password = req.body.password;
 
     db.oneOrNone("SELECT userid, username, password FROM users WHERE username = $1", [username])
-        .then((user) => {            
+        .then((user) => {
             if (user) {
                 bcrypt.compare(password, user.password, (error, result) => {
                     // Checks if the passwords match
                     if (result) {
-                        if(req.session){
-                            req.session.user = {userid: user.userid, username: user.username}
+                        if (req.session) {
+                            req.session.user = { userid: user.userid, username: user.username }
                         }
                         res.redirect("/users/articles");
                     } else {
@@ -104,7 +111,7 @@ app.post("/register", (req, res) => {
             // Inserts user into user table            
             bcrypt.hash(password, SALT_ROUNDS, (error, hash) => {
                 // Do not use stritct comparison === or it will go into else block
-                if (error == null) {                    
+                if (error == null) {
                     db.none("INSERT INTO users(username, password) VALUES($1, $2)", [username, hash])
                         .then(() => {
                             res.send("SUCCESS")
