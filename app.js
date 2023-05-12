@@ -30,6 +30,8 @@ app.use(session({
     saveUninitialized: false
 }))
 
+
+
 //Start
 app.get("/register", (req, res) => {
     res.render("register");
@@ -45,6 +47,25 @@ app.get("/users/articles", (req, res) => {
 });
 
 
+
+app.get("/users/add-article", (req, res) => {
+    res.render("add-article");
+})
+
+
+app.post("/users/add-article", (req, res) => {
+    let title = req.body.title;
+    let description = req.body.description;
+    // Each article belongs to a user, so it gathers the userid
+    let userid = req.session.user.userid;
+    db.none("INSERT INTO articles(title, body, fk_userid) VALUES($1, $2, $3)", [title, description,userid])
+    .then(()=> {
+        res.send("SUCCESS");
+    }).catch(error => {
+        console.log(error);
+    });
+})
+
 app.post("/login", (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
@@ -56,7 +77,7 @@ app.post("/login", (req, res) => {
                     // Checks if the passwords match
                     if (result) {
                         if(req.session){
-                            req.session.user = {userid: user.userId, username: user.username}
+                            req.session.user = {userid: user.userid, username: user.username}
                         }
                         res.redirect("/users/articles");
                     } else {
