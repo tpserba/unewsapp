@@ -3,19 +3,22 @@ const express = require("express");
 const app = express();
 const PORT = 3003;
 const mustache = require("mustache-express")
+const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 // Executes the function that is returned and stores the value in pgp
 const pgp = require("pg-promise")();
+
+
+//Setup
 const CONN_STR = "postgres://localhost:5432/newsdb";
 // Craetes db object using the connection string
 const db = pgp(CONN_STR);
-
-//Setup
 app.engine("mustache", mustache());
 app.set("views", "./views");
 app.set("view engine", "mustache");
 // Tells body parser what body we're looking for
 app.use(bodyParser.urlencoded({ extended: false }));
+const SALT_ROUNDS = 10;
 
 
 //Start
@@ -34,14 +37,24 @@ app.post("/register", (req, res) => {
             res.render("register", { message: "Username already exists" })
         } else {
             // Inserts user into user table
-            db.none("INSERT INTO users (username, password) VALUES($1, $2)", [username, password])
-                .then((() => {
-                    res.send("SUCCESS")
-                })).catch((error) => {
-                    console.log(error)
-                })
+            console.log(password);
+            console.log(SALT_ROUNDS);
+            bcrypt.hash(password, SALT_ROUNDS, (error, hash)=> {
+                // Do not use stritct comparison === or it will go into else block
+                if (error == null) {
+                    console.log("no error")
+                    db.none("INSERT INTO users(username, password) VALUES($1, $2)", [username, hash])
+                        .then(() => {
+                            res.send("SUCCESS")
+                        })
+                } else { 
+                    console.log(error);
+                }
+            })
         }
-    }))
+    })).catch(error => {
+        console.log(error);
+    })
 });
 
 app.listen(PORT, () => {
