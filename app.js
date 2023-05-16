@@ -37,7 +37,11 @@ app.set("view engine", "mustache");
 // Adds first param to apply alias since otherwise .css files would be available at root level (localhost:3003/example.css)
 app.use("/css", express.static("css"))
 
-
+// Stores whether the user is logged in or not so template engine can access the value and choose to display options based on it
+app.use((req,res,next) => {
+    res.locals.authenticated = req.session.user == null ? false : true;
+    next(); 
+})
 
 
 

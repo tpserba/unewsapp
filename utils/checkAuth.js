@@ -1,8 +1,8 @@
 function checkAuth(req, res, next) {
-    console.log(req.body);
-    console.log(req.session);
+    console.log("checkAuth");   
     if(req.session) {
         if(req.session.user) {
+            res.locals.authenticated = true;
             next();
         } else {
             res.redirect("/login");

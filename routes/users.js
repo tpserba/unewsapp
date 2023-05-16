@@ -10,9 +10,8 @@ const router = express.Router();
 
 // Start
 router.get("/articles", (req, res) => {
-   
+    console.log("usersRouter");    
    let userid = req.session.user.userid;
-    
     db.any("SELECT articleid, title, body FROM articles WHERE fk_userid = $1", [userid])
         .then((articles) => {
             res.render("articles", { articles: articles });
@@ -21,7 +20,6 @@ router.get("/articles", (req, res) => {
         })
 
 });
-
 
 
 router.get("/add-article", (req, res) => {
