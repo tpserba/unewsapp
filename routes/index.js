@@ -13,12 +13,19 @@ const SALT_ROUNDS = 10;
 
 
 // Start
+/*
 router.get("/", (req, res) => {
     db.any("SELECT articleid, title, body FROM articles")
         .then((articles) => {
             res.render("index", { articles: articles });
         }).catch((error) =>
             console.log(error));
+})
+*/
+// Async await version of previous function
+router.get("/", async (req, res) => {
+    let articles = await db.any("SELECT articleid, title, body FROM articles");
+    res.render("index", { articles: articles });      
 })
 
 
