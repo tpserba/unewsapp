@@ -26,7 +26,7 @@ router.get("/", (req, res) => {
 router.get("/", async (req, res) => {
     let articles = await db.any("SELECT articleid, title, body FROM articles");
     res.render("index", { articles: articles });      
-})
+});
 
 
 router.get("/register", (req, res) => {
