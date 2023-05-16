@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const { application } = require("express");
 
 
 
@@ -80,6 +81,19 @@ router.post("/register", (req, res) => {
     })).catch(error => {
         console.log(error);
     })
+});
+
+
+router.get("/logout", (req, res, next) => {
+    if(req.session){
+        req.session.destroy((error) => {
+            if(error){
+                next(error);
+            } else {
+                res.redirect("/login");
+            }
+        })
+    }
 });
 
 
