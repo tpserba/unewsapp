@@ -9,8 +9,7 @@ const router = express.Router();
 
 
 // Start
-router.get("/articles", (req, res) => {
-    console.log("usersRouter");    
+router.get("/articles", (req, res) => {     
    let userid = req.session.user.userid;
     db.any("SELECT articleid, title, body FROM articles WHERE fk_userid = $1", [userid])
         .then((articles) => {
