@@ -2,8 +2,9 @@
 const express = require("express");
 const app = express();
 const PORT = 3003;
-const mustache = require("mustache-express")
 const bodyParser = require("body-parser");
+const checkAuth = require("./utils/checkAuth");
+const mustache = require("mustache-express")
 // Executes the function that is returned and stores the value in pgp
 const pgp = require("pg-promise")();
 const session = require("express-session");
@@ -17,17 +18,6 @@ const CONN_STR = "postgres://localhost:5432/newsdb";
 const VIEWS_PATH = path.join(__dirname, "/views")
 // Craetes db object using the connection string
 db = pgp(CONN_STR);
-// Tells body parser what body we're looking for
-app.use(bodyParser.urlencoded({ extended: false }));
-// Setup routes middleware
-app.use("/", indexRoutes);
-app.use("/users", userRoutes);
-// Configures view engine
-app.engine("mustache", mustache(VIEWS_PATH + "/partials", ".mustache"));
-app.set("views", VIEWS_PATH);
-app.set("view engine", "mustache");
-// Adds first param to apply alias since otherwise .css files would be available at root level (localhost:3003/example.css)
-app.use("/css", express.static("css"))
 // Configures session
 app.use(session({
     secret: "rwg4gdsvzvz",
@@ -35,6 +25,18 @@ app.use(session({
     // Save session only when we put something in it
     saveUninitialized: false
 }))
+// Tells body parser what body we're looking for
+app.use(bodyParser.urlencoded({ extended: false }));
+// Setup routes middleware
+app.use("/", indexRoutes);
+app.use("/users", checkAuth ,userRoutes);
+// Configures view engine
+app.engine("mustache", mustache(VIEWS_PATH + "/partials", ".mustache"));
+app.set("views", VIEWS_PATH);
+app.set("view engine", "mustache");
+// Adds first param to apply alias since otherwise .css files would be available at root level (localhost:3003/example.css)
+app.use("/css", express.static("css"))
+
 
 
 
